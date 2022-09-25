@@ -1,1 +1,5 @@
 Session.vim
+*.swp
+/*.egg-info/
+__pycache__/
+/forms/

@@ -2,3 +2,5 @@
 
 pylint
 aiohttp_debugtoolbar
+black
+isort
