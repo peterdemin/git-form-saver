@@ -29,7 +29,6 @@ setup(
     url='https://github.com/peterdemin/git-form-saver',
     packages=[
         'git-form-saver',
-        'git-form-saver.templates',
     ],
     package_dir={
         'git-form-saver': 'gitformsaver',
