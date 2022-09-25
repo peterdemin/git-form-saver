@@ -16,7 +16,7 @@ HERE = os.path.abspath(os.path.dirname(__file__))
 TEMPLATES_PATH = os.path.join(HERE, "templates")
 
 
-class TestService:
+class ToyService:
     def setup(self, app) -> None:
         if not _DEBUG_ENABLED:
             return

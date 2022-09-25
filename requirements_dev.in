@@ -6,3 +6,5 @@ black
 isort
 twine
 pip-compile-multi
+flake8
+Flake8-pyproject

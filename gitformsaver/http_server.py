@@ -8,12 +8,10 @@ from multidict import MultiDictProxy
 
 from .async_git_client import GitThread
 from .git_client import Git
-from .test_service import TestService
 from .form_formatter import FormFormatter
 
 FORMS_REPO_PATH = "forms"
 FORM_FILE_PATH = "README.md"
-app = web.Application()
 
 
 class GitFormSaverService:
@@ -64,11 +62,10 @@ def setup_app(app: web.Application) -> None:
         form_formatter=FormFormatter(),
     )
     service.setup(app)
-    test_service = TestService()
-    test_service.setup(app)
 
 
 def main():
+    app = web.Application()
     setup_app(app)
     web.run_app(app)
 

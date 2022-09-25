@@ -1,13 +1,9 @@
 #!/usr/bin/env python
 
-import os
 from setuptools import setup
 
-if os.path.exists('README.rst'):
-    with open('README.rst', encoding='utf-8') as readme_file:
-        README = readme_file.read()
-else:
-    README = 'Git form saver'
+with open('README.rst', encoding='utf-8') as readme_file:
+    README = readme_file.read()
 
 
 def read_requirements():
@@ -33,6 +29,7 @@ setup(
     url='https://github.com/peterdemin/git-form-saver',
     packages=[
         'git-form-saver',
+        'git-form-saver.templates',
     ],
     package_dir={
         'git-form-saver': 'gitformsaver',
