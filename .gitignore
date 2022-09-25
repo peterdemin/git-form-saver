@@ -3,3 +3,5 @@ Session.vim
 /*.egg-info/
 __pycache__/
 /forms/
+/build/
+/dist/

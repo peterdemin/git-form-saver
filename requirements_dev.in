@@ -4,3 +4,5 @@ pylint
 aiohttp_debugtoolbar
 black
 isort
+twine
+pip-compile-multi
