@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Test git form saver</title>
+  </head>
+  <body>
+    <h2>Explicit redirect to tested</h2>
+    <form action="./" method="POST">
+      <div>
+        <label for="say">What do you want to say?</label>
+        <input name="say" id="say" value="Hi" />
+      </div>
+      <div>
+        <label for="to">Who do you want to say it to?</label>
+        <input name="to" id="to" value="Mom" />
+      </div>
+      <input type=hidden name="redirect" id="redirect" value="{{ url('test_done_page') }}" />
+      <div>
+        <button>Send</button>
+      </div>
+    </form>
+
+    <h2>Implicit redirect back</h2>
+    <form action="./" method="POST">
+      <div>
+        <label for="what">What do you want to get?</label>
+        <input name="what" value="Cucumber" />
+      </div>
+      <div>
+        <label for="where">Where do you want to get it?</label>
+        <input name="where" value="Jar" />
+      </div>
+      <div>
+        <button>Send</button>
+      </div>
+    </form>
+
+  </body>
+</html>
