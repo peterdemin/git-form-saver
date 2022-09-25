@@ -1,77 +1,71 @@
 import os
+from typing import Callable, List, Tuple
 
-import aiohttp_jinja2
-import jinja2
-from aiohttp import web
+import aiohttp
 import git
+from aiohttp import web
+from multidict import MultiDictProxy
 
 from .async_git_client import GitThread
 from .git_client import Git
+from .test_service import TestService
+from .form_formatter import FormFormatter
 
-try:
-    import aiohttp_debugtoolbar
-
-    _DEBUG_ENABLED = True
-except ImportError:
-    _DEBUG_ENABLED = False
-
-
-HERE = os.path.abspath(os.path.dirname(__file__))
-FORMS_REPO_PATH = 'forms'
-FORM_FILE_PATH = 'README.md'
-TEMPLATES_PATH = os.path.join(HERE, "templates")
+FORMS_REPO_PATH = "forms"
+FORM_FILE_PATH = "README.md"
 app = web.Application()
 
 
 class GitFormSaverService:
-    def __init__(self, git_thread: GitThread) -> None:
+    def __init__(
+        self,
+        git_thread: GitThread,
+        form_formatter: Callable[[List[Tuple[str, str]]], str],
+    ) -> None:
         self._git_thread = git_thread
+        self._form_formatter = form_formatter
 
-    async def __call__(self, request: web.Request) -> web.HTTPFound:
-        form = await request.post()
-        location = form.get("redirect") or request.headers.get("Referer")
+    async def handle(self, request: aiohttp.web.Request) -> web.HTTPFound:
+        location = request.headers.get("Referer")
+        form: MultiDictProxy = await request.post()
+        pairs: List[Tuple[str, str]] = []
+        for key in form:
+            if key == "redirect":
+                location = form.getone(key)
+            else:
+                pairs.extend(
+                    (key, value)
+                    for value in form.getall(key)
+                )
+        text = self._form_formatter(pairs)
+        if text:
+            self._git_thread.push_soon(text)
         return web.HTTPFound(location)
 
     def setup(self, app: web.Application) -> None:
-        app.router.add_post("/", self)
+        app.router.add_post("/", self.handle)
+        app.on_shutdown.append(self.on_shutdown)
 
-
-class TestService:
-    def setup(self, app) -> None:
-        aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(TEMPLATES_PATH))
-        aiohttp_debugtoolbar.setup(app)
-        app.router.add_routes(
-            [
-                web.get("/test", self.test_page, name="test_page"),
-                web.get("/tested", self.test_done_page, name="test_done_page"),
-            ]
-        )
-
-    @aiohttp_jinja2.template("test.html")
-    async def test_page(self, request):
-        del request
-        return {}
-
-
-    @aiohttp_jinja2.template("test.html")
-    async def test_done_page(self, request):
-        del request
-        return {}
+    async def on_shutdown(self, app: web.Application) -> None:
+        del app
+        self._git_thread.stop()
 
 
 def setup_app(app: web.Application) -> None:
+    git_thread = GitThread(
+        git=Git(
+            repo=git.Repo(FORMS_REPO_PATH),
+            private_key_path="",
+        ),
+        file_path=os.path.join(FORMS_REPO_PATH, FORM_FILE_PATH),
+    )
     service = GitFormSaverService(
-        GitThread(
-            git=Git(
-                repo=git.Repo(FORMS_REPO_PATH),
-                private_key_path='',
-            ),
-            file_path=os.path.join(FORMS_REPO_PATH, FORM_FILE_PATH),
-        )
+        git_thread=git_thread,
+        form_formatter=FormFormatter(),
     )
     service.setup(app)
-    if _DEBUG_ENABLED:
-        TestService().setup(app)
+    test_service = TestService()
+    test_service.setup(app)
 
 
 def main():

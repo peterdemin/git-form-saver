@@ -31,7 +31,8 @@ class GitThread:
     def _run_thread(self) -> None:
         while self._running:
             try:
-                self._queue.not_empty.wait(timeout=self._POLL_TIMEOUT)
+                with self._queue.not_empty:
+                    self._queue.not_empty.wait(timeout=self._POLL_TIMEOUT)
             except queue.Empty:
                 continue
             self._pull()
