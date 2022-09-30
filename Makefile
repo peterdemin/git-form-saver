@@ -56,8 +56,8 @@ sync: ## completely sync installed packages with dev dependencies
 
 .PHONY: lock
 lock:
-	pip-compile-multi --directory . --allow-unsafe --no-upgrade
+	pip-compile-multi --directory . --allow-unsafe --no-upgrade -t requirements_dev.in
 
 .PHONY: upgrade
 upgrade:
-	pip-compile-multi --directory . --allow-unsafe
+	pip-compile-multi --directory . --allow-unsafe -t requirements_dev.in
