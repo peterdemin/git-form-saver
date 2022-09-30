@@ -8,3 +8,5 @@ twine
 pip-compile-multi
 flake8
 Flake8-pyproject
+pytest
+ipdb

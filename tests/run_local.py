@@ -7,6 +7,7 @@ from gitformsaver.http_server import GitFormSaverService
 from gitformsaver.async_git_client import GitThread
 from gitformsaver.git_client import Git
 from gitformsaver.form_formatter import FormFormatter
+from gitformsaver.formatters import Formatter
 from .toy_service import ToyService
 
 _app = web.Application()
@@ -22,7 +23,7 @@ def setup_app(app: web.Application) -> None:
     )
     service = GitFormSaverService(
         git_thread=git_thread,
-        form_formatter=FormFormatter(),
+        formatters={Formatter.PLAIN_TEXT: FormFormatter()},
     )
     service.setup(app)
     toy_service = ToyService()

@@ -17,7 +17,9 @@
         <label for="to">Who do you want to say it to?</label>
         <input name="to" id="to" value="Mom" />
       </div>
-      <input type=hidden name="redirect" id="redirect" value="{{ url('test_done_page') }}" />
+      <input type=hidden name="redirect" value="{{ url('test_done_page') }}" />
+      <input type=hidden name="repo" value="git@github.com:peterdemin/git-form-saver-demo.git" />
+      <input type=hidden name="file" value="README.md" />
       <div>
         <button>Send</button>
       </div>
@@ -33,6 +35,8 @@
         <label for="where">Where do you want to get it?</label>
         <input name="where" value="Jar" />
       </div>
+      <input type=hidden name="repo" value="git@github.com:peterdemin/git-form-saver-demo.git" />
+      <input type=hidden name="file" value="README.md" />
       <div>
         <button>Send</button>
       </div>
