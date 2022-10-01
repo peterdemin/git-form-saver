@@ -1,4 +1,4 @@
-# vim: tabstop=4 shiftwidth=4 softtabstop=4
+# Adapted from git-url-parse package:
 
 # Copyright (c) 2017 John Dewey
 #
@@ -46,14 +46,14 @@ _POSSIBLE_REGEXES = (
                r'[:/]*'
                r'(?P<port>[\d]+){0,1}'
                r'(?P<pathname>\/([\w\-]+\/)?'
-               r'([\w\-\.]+?(\.git|\/)?)?)$'),
+               r'([\w.-]+?(\.git|\/)?)?)$'),
     re.compile(r'(git\+)?'
                r'((?P<protocol>\w+)://)'
                r'((?P<user>\w+)@)?'
                r'((?P<resource>[\w\.\-]+))'
                r'(:(?P<port>\d+))?'
                r'(?P<pathname>(\/\w+/)?'
-               r'(\/?[\w\-]+(\.git|\/)?)?)$'),
+               r'(\/?[\w.-]+(\.git|\/)?)?)$'),
     re.compile(r'^(?:(?P<user>.+)@)*'
                r'(?P<resource>[a-z0-9_.-]*)[:]*'
                r'(?P<port>[\d]+){0,1}'
@@ -62,7 +62,7 @@ _POSSIBLE_REGEXES = (
                r'((?P<resource>[\w\.\-]+))'
                r'[\:\/]{1,2}'
                r'(?P<pathname>(\w+/)?'
-               r'([\w\-]+(\.git|\/)?)?)$'),
+               r'([\w.-]+(\.git|\/)?)?)$'),
 )
 
 
@@ -99,8 +99,7 @@ class _Parser:
                 kwargs.update(match.groupdict())
                 break
         else:
-            msg = f"Invalid URL '{self._url}'"
-            raise ParserError(msg)
+            raise ParserError(f"Invalid URL '{self._url}'")
 
         return Parsed(**kwargs)
 
