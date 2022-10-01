@@ -44,7 +44,7 @@ def test_full_request(git_thread: GitThread, git_form_saver_service: GitFormSave
     )
     assert result.status == 302
     assert result.location == 'http://example.com'
-    git_thread.push_soon.assert_called_once_with('key: value')
+    git_thread.push_soon.assert_called_once_with('file', 'key: value')
 
 
 def test_empty_request(git_form_saver_service: GitFormSaverService):

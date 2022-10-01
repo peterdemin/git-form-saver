@@ -6,6 +6,7 @@ from typing import Dict
 from .git_ops import GitOps
 from .git_thread import GitThread
 from .lazy_git import LazyGit
+from .git_task_handler import GitTaskHandler
 
 
 @dataclass(frozen=True)
@@ -21,7 +22,11 @@ class GitThreadManager:
 
     def __call__(self, repo: str) -> GitThread:
         if repo not in self._threads:
-            git_thread = GitThread(LazyGit(self._make_repo_path(repo), self._git_ops))
+            git_thread = GitThread(
+                GitTaskHandler(
+                    LazyGit(self._make_repo_path(repo), self._git_ops)
+                )
+            )
             git_thread.clone_soon(repo)
             self._threads[repo] = ThreadInfo(started_at=time.time(), git_thread=git_thread)
         return self._threads[repo].git_thread

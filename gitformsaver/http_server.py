@@ -54,7 +54,9 @@ class GitFormSaverService:
         if not error:
             text = self._formatters[control.formatter](pairs)
             if text:
-                self._git_thread_manager(control.repo).push_soon(text)
+                self._git_thread_manager(control.repo).push_soon(
+                    control.file, text
+                )
             return web.HTTPFound(control.redirect or request.headers.get("Referer"))
         return web.HTTPBadRequest(text=error)
 
