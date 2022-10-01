@@ -31,10 +31,8 @@ class ToyService:
 
     @aiohttp_jinja2.template("test.html")
     async def test_page(self, request):
-        del request
-        return {}
+        return {'base_url': f'{request.scheme}://{request.host}'}
 
     @aiohttp_jinja2.template("test.html")
     async def test_done_page(self, request):
-        del request
-        return {}
+        return {'base_url': f'{request.scheme}://{request.host}'}
