@@ -5,13 +5,14 @@ from unittest import mock
 import pytest
 from multidict import MultiDict
 
-from gitformsaver.async_git_client import GitThread
+from gitformsaver.git_thread import GitThread
+from gitformsaver.git_thread_manager import GitThreadManager
 from gitformsaver.form_formatter import FormFormatter
 from gitformsaver.formatters import Formatter
 from gitformsaver.http_server import GitFormSaverService
 
 
-def test_minimal_request(git_form_saver_service: GitFormSaverService):
+def test_noop_valid_request(git_thread: GitThread, git_form_saver_service: GitFormSaverService):
     result = run(
         git_form_saver_service.handle(
             FakeRequest(
@@ -24,9 +25,10 @@ def test_minimal_request(git_form_saver_service: GitFormSaverService):
     )
     assert result.status == 302
     assert result.location == 'Referer'
+    git_thread.push_soon.assert_not_called()
 
 
-def test_full_request(git_form_saver_service: GitFormSaverService):
+def test_full_request(git_thread: GitThread, git_form_saver_service: GitFormSaverService):
     result = run(
         git_form_saver_service.handle(
             FakeRequest(
@@ -35,12 +37,14 @@ def test_full_request(git_form_saver_service: GitFormSaverService):
                     'file': 'file',
                     'redirect': 'http://example.com',
                     'formatter': 'JSON',
+                    'key': 'value',
                 }
             )
         )
     )
     assert result.status == 302
     assert result.location == 'http://example.com'
+    git_thread.push_soon.assert_called_once_with('key: value')
 
 
 def test_empty_request(git_form_saver_service: GitFormSaverService):
@@ -70,16 +74,23 @@ def git_thread() -> GitThread:
 
 
 @pytest.fixture
+def git_thread_manager(git_thread: GitThread) -> GitThreadManager:
+    obj = mock.Mock(spec_set=GitThreadManager)
+    obj.return_value = git_thread
+    return obj
+
+
+@pytest.fixture
 def form_formatter() -> FormFormatter:
     return mock.Mock(wraps=FormFormatter())
 
 
 @pytest.fixture
 def git_form_saver_service(
-    git_thread: GitThread, form_formatter: FormFormatter
+    git_thread_manager: GitThreadManager, form_formatter: FormFormatter
 ) -> GitFormSaverService:
     return GitFormSaverService(
-        git_thread=git_thread,
+        git_thread_manager=git_thread_manager,
         formatters={Formatter.PLAIN_TEXT: form_formatter, Formatter.JSON: form_formatter},
     )
 

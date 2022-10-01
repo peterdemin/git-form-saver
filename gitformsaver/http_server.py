@@ -1,17 +1,15 @@
-import os
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Tuple
 
 import aiohttp
-import git
 import marshmallow
 from aiohttp import web
 from multidict import MultiDictProxy
 
-from .async_git_client import GitThread
+from .git_ops import GitOps
+from .git_thread_manager import GitThreadManager
 from .form_formatter import FormFormatter
 from .formatters import Formatter
-from .git_client import Git
 
 FORMS_REPO_PATH = "forms"
 FORM_FILE_PATH = "README.md"
@@ -43,10 +41,10 @@ class ControlSchema(marshmallow.Schema):
 class GitFormSaverService:
     def __init__(
         self,
-        git_thread: GitThread,
+        git_thread_manager: GitThreadManager,
         formatters: Dict[Formatter, Callable[[List[Tuple[str, str]]], str]],
     ) -> None:
-        self._git_thread = git_thread
+        self._git_thread_manager = git_thread_manager
         self._control_schema = ControlSchema()
         self._formatters = formatters
 
@@ -56,7 +54,7 @@ class GitFormSaverService:
         if not error:
             text = self._formatters[control.formatter](pairs)
             if text:
-                self._git_thread.push_soon(text)
+                self._git_thread_manager(control.repo).push_soon(text)
             return web.HTTPFound(control.redirect or request.headers.get("Referer"))
         return web.HTTPBadRequest(text=error)
 
@@ -90,19 +88,14 @@ class GitFormSaverService:
 
     async def on_shutdown(self, app: web.Application) -> None:
         del app
-        self._git_thread.stop()
+        self._git_thread_manager.stop()
 
 
 def setup_app(app: web.Application) -> None:
-    git_thread = GitThread(
-        git=Git(
-            repo=git.Repo(FORMS_REPO_PATH),
-            private_key_path="",
-        ),
-        file_path=os.path.join(FORMS_REPO_PATH, FORM_FILE_PATH),
-    )
     service = GitFormSaverService(
-        git_thread=git_thread,
+        git_thread_manager=GitThreadManager(
+            git_ops=GitOps(private_key_path=""),
+        ),
         formatters={Formatter.PLAIN_TEXT: FormFormatter()},
     )
     service.setup(app)

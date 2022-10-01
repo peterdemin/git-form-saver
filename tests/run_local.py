@@ -4,7 +4,7 @@ from aiohttp import web
 import git
 
 from gitformsaver.http_server import GitFormSaverService
-from gitformsaver.async_git_client import GitThread
+from gitformsaver.git_thread import GitThread
 from gitformsaver.git_client import Git
 from gitformsaver.form_formatter import FormFormatter
 from gitformsaver.formatters import Formatter
