@@ -25,9 +25,15 @@ class GitThread:
 
     def stop(self, block: bool = True) -> None:
         self._running = False
+        if not self._thread.is_alive():
+            return
         if block:
             self._queue.join()
             self._thread.join(timeout=self._SHUTDOWN_TIMEOUT)
+
+    @property
+    def is_running(self) -> bool:
+        return self._running and self._thread.is_alive()
 
     def _run_thread(self) -> None:
         while self._running:

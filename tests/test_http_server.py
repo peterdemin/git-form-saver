@@ -7,7 +7,7 @@ from multidict import MultiDict
 
 from gitformsaver.git_thread import GitThread
 from gitformsaver.git_thread_manager import GitThreadManager
-from gitformsaver.form_formatter import FormFormatter
+from gitformsaver.plain_text_formatter import PlainTextFormatter
 from gitformsaver.formatters import Formatter
 from gitformsaver.http_server import GitFormSaverService
 
@@ -44,7 +44,7 @@ def test_full_request(git_thread: GitThread, git_form_saver_service: GitFormSave
     )
     assert result.status == 302
     assert result.location == 'http://example.com'
-    git_thread.push_soon.assert_called_once_with('file', 'key: value')
+    git_thread.push_soon.assert_called_once_with('file', 'key: value\n\n')
 
 
 def test_empty_request(git_form_saver_service: GitFormSaverService):
@@ -81,13 +81,13 @@ def git_thread_manager(git_thread: GitThread) -> GitThreadManager:
 
 
 @pytest.fixture
-def form_formatter() -> FormFormatter:
-    return mock.Mock(wraps=FormFormatter())
+def form_formatter() -> PlainTextFormatter:
+    return mock.Mock(wraps=PlainTextFormatter())
 
 
 @pytest.fixture
 def git_form_saver_service(
-    git_thread_manager: GitThreadManager, form_formatter: FormFormatter
+    git_thread_manager: GitThreadManager, form_formatter: PlainTextFormatter
 ) -> GitFormSaverService:
     return GitFormSaverService(
         git_thread_manager=git_thread_manager,

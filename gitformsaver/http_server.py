@@ -8,7 +8,7 @@ from multidict import MultiDictProxy
 
 from .git_ops import GitOps
 from .git_thread_manager import GitThreadManager
-from .form_formatter import FormFormatter
+from .formatters_loader import load_formatters
 from .formatters import Formatter
 
 FORMS_REPO_PATH = "forms"
@@ -98,7 +98,7 @@ def setup_app(app: web.Application) -> None:
         git_thread_manager=GitThreadManager(
             git_ops=GitOps(private_key_path=""),
         ),
-        formatters={Formatter.PLAIN_TEXT: FormFormatter()},
+        formatters=load_formatters(),
     )
     service.setup(app)
 

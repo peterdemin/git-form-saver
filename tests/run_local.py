@@ -1,7 +1,6 @@
 from aiohttp import web
 
-from gitformsaver.form_formatter import FormFormatter
-from gitformsaver.formatters import Formatter
+from gitformsaver.formatters_loader import load_formatters
 from gitformsaver.git_ops import GitOps
 from gitformsaver.git_thread_manager import GitThreadManager
 from gitformsaver.http_server import GitFormSaverService
@@ -16,7 +15,7 @@ def setup_app(app: web.Application) -> None:
         git_thread_manager=GitThreadManager(
             git_ops=GitOps(private_key_path=""),
         ),
-        formatters={Formatter.PLAIN_TEXT: FormFormatter()},
+        formatters=load_formatters(),
     )
     service.setup(app)
     toy_service = ToyService()

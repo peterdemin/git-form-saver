@@ -8,12 +8,36 @@ from gitformsaver.git_ops import GitOps
 from gitformsaver.git_thread_manager import GitThreadManager
 
 
+@pytest.mark.parametrize(
+    'url, path',
+    [
+        (
+            'git@github.com:peterdemin/git-form-saver-demo.git',
+            'github.com/peterdemin/git-form-saver-demo.git',
+        ),
+        (
+            'ssh://git@github.com:peterdemin/git-form-saver-demo.git',
+            'github.com/peterdemin/git-form-saver-demo.git',
+        ),
+        (
+            'ssh://user:password@host:dir',
+            'host/dir',
+        ),
+        (
+            'ssh://user:password@host:/etc/hosts',
+            'host/etc/hosts',
+        ),
+        ('https://github.com/coala/git-url-parse.git', ''),
+        ('ssh://user:password@host:../../../../etc/hosts', ''),
+        ('file:///etc/hosts', ''),
+    ],
+)
 def test_thread_manager_creates_git_thread(
-    mock_git_ops: GitOps, git_thread_manager: GitThreadManager
+    mock_git_ops: GitOps, git_thread_manager: GitThreadManager, url: str, path: str
 ) -> None:
-    git_thread_manager('repo-url')
+    git_thread_manager(url)
     git_thread_manager.stop()
-    mock_git_ops.clone.assert_called_once_with(url='repo-url', to_path='/repo-url')
+    mock_git_ops.clone.assert_called_once_with(url=url, to_path=path)
 
 
 @pytest.fixture(name='mock_git_ops')
