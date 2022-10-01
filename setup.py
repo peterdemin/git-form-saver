@@ -21,17 +21,17 @@ INSTALL_REQUIRES = read_requirements()
 
 setup(
     name='git-form-saver',
-    version='0.0.1',
+    version='0.0.2',
     description="Git form saver",
     long_description=README,
     author="Peter Demin",
     author_email='peterdemin@gmail.com',
     url='https://github.com/peterdemin/git-form-saver',
     packages=[
-        'git-form-saver',
+        'gitformsaver',
     ],
     package_dir={
-        'git-form-saver': 'gitformsaver',
+        'gitformsaver': 'gitformsaver',
     },
     entry_points={
         'console_scripts': [
