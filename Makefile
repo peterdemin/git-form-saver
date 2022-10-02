@@ -1,4 +1,3 @@
-.PHONY: clean clean-test clean-pyc clean-build docs help
 .DEFAULT_GOAL := help
 
 BROWSER := open
@@ -40,6 +39,12 @@ release: dist ## package and upload a release
 .PHONY: lint
 lint: ## check style with pylint
 	pylint gitformsaver tests
+	mypy gitformsaver/
+	pytype -j auto gitformsaver/
+
+.PHONY: test
+test: ## run test suite
+	pytest --cov=gitformsaver tests
 
 .PHONY: toy
 toy:  ## run local toy server for manual tests

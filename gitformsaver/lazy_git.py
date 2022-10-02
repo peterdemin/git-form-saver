@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 from .git_client import GitInterface, Git
 from .git_ops import GitOps
@@ -9,7 +10,7 @@ class LazyGit(GitInterface):
         # pylint: disable=super-init-not-called
         self._path = path
         self._git_ops = git_ops
-        self._actual_git: Git = None
+        self._actual_git: Optional[Git] = None
 
     def clone(self, url: str) -> None:
         self._actual_git = self._git_ops.clone(url=url, to_path=self._path)

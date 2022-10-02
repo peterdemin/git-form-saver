@@ -20,19 +20,20 @@
 #  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 #  DEALINGS IN THE SOFTWARE.
 
+from typing import Optional, List
 from dataclasses import dataclass
 import re
 
 
 @dataclass(frozen=True)
 class Parsed:  # pylint: disable=too-many-instance-attributes
-    pathname: str
-    protocols: str
+    pathname: Optional[str]
+    protocols: List[str]
     protocol: str
     href: str
-    resource: str
-    user: str
-    port: str
+    resource: Optional[str]
+    user: Optional[str]
+    port: Optional[str]
 
 
 def parse_git_url(url):
@@ -76,7 +77,7 @@ class _Parser:
     def __init__(self, url):
         self._url = url
 
-    def parse(self):
+    def parse(self) -> Parsed:
         """Parses a GIT URL and returns an object.
 
         Raises an exception on invalid URL.
@@ -100,13 +101,11 @@ class _Parser:
                 break
         else:
             raise ParserError(f"Invalid URL '{self._url}'")
-
         return Parsed(**kwargs)
 
-    def _get_protocols(self):
+    def _get_protocols(self) -> List[str]:
         try:
             index = self._url.index('://')
+            return self._url[:index].split('+')
         except ValueError:
             return []
-
-        return self._url[:index].split('+')

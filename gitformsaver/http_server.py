@@ -1,18 +1,19 @@
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Tuple
+from typing import List, Mapping, Optional, Tuple, Union
 
 import aiohttp
 import marshmallow
 from aiohttp import web
 from multidict import MultiDictProxy
 
+from .formatters import Formatter, FormatterInterface
+from .formatters_loader import load_formatters
 from .git_ops import GitOps
 from .git_thread_manager import GitThreadManager
-from .formatters_loader import load_formatters
-from .formatters import Formatter
 
 FORMS_REPO_PATH = "forms"
 FORM_FILE_PATH = "README.md"
+Pairs = List[Tuple[str, str]]
 
 
 @dataclass(frozen=True)
@@ -21,6 +22,13 @@ class Control:
     file: str
     formatter: Formatter = Formatter.PLAIN_TEXT
     redirect: str = ''
+
+
+@dataclass(frozen=True)
+class Payload:
+    control: Optional[Control]
+    pairs: Pairs
+    error: str
 
 
 class ControlSchema(marshmallow.Schema):
@@ -42,35 +50,36 @@ class GitFormSaverService:
     def __init__(
         self,
         git_thread_manager: GitThreadManager,
-        formatters: Dict[Formatter, Callable[[List[Tuple[str, str]]], str]],
+        formatters: Mapping[Formatter, FormatterInterface],
     ) -> None:
         self._git_thread_manager = git_thread_manager
         self._control_schema = ControlSchema()
         self._formatters = formatters
 
-    async def handle(self, request: aiohttp.web.Request) -> web.HTTPFound:
+    async def handle(
+        self, request: aiohttp.web.Request
+    ) -> Union[web.HTTPFound, web.HTTPBadRequest]:
         form_data = await request.post()
-        control, pairs, error = self._parse_data(form_data)
-        if not error:
-            text = self._formatters[control.formatter](pairs)
-            if text:
-                self._git_thread_manager(control.repo).push_soon(
-                    control.file, text
-                )
-            return web.HTTPFound(control.redirect or request.headers.get("Referer"))
-        return web.HTTPBadRequest(text=error)
+        payload = self._parse_data(form_data)
+        if payload.error or not payload.control or not payload.pairs:
+            return web.HTTPBadRequest(text=payload.error)
+        text = self._formatters[payload.control.formatter](payload.pairs)
+        if text:
+            self._git_thread_manager(payload.control.repo).push_soon(payload.control.file, text)
+        return web.HTTPFound(
+            payload.control.redirect or request.headers["Referer"]
+        )
 
-    def _parse_data(
-        self, form_data: MultiDictProxy
-    ) -> Tuple[ControlSchema, List[Tuple[str, str]], marshmallow.ValidationError]:
+    def _parse_data(self, form_data: MultiDictProxy) -> Payload:
         try:
-            return (*self._unsafe_parse_data(form_data), None)
+            control, pairs = self._unsafe_parse_data(form_data)
+            return Payload(control=control, pairs=pairs, error='')
         except marshmallow.ValidationError as exc:
-            return (None, None, self._format_validation_error(exc))
+            return Payload(control=None, pairs=[], error=self._format_validation_error(exc))
 
     def _unsafe_parse_data(
         self, form_data: MultiDictProxy
-    ) -> Tuple[ControlSchema, List[Tuple[str, str]]]:
+    ) -> Tuple[Control, List[Tuple[str, str]]]:
         control = self._control_schema.load(form_data)
         pairs: List[Tuple[str, str]] = []
         for key in form_data:
@@ -79,10 +88,7 @@ class GitFormSaverService:
         return control, pairs
 
     def _format_validation_error(self, exc: marshmallow.ValidationError) -> str:
-        return '\n'.join(
-            f'{key}: {" ".join(values)}'
-            for key, values in exc.messages.items()
-        )
+        return '\n'.join(f'{key}: {" ".join(values)}' for key, values in exc.messages_dict.items())
 
     def setup(self, app: web.Application) -> None:
         app.router.add_post("/", self.handle)

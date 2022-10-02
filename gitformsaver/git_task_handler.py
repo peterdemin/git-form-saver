@@ -1,7 +1,7 @@
 import logging
 import os
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Tuple, Optional
 
 from .lazy_git import LazyGit
 
@@ -21,8 +21,8 @@ class CloneTask:
 
 @dataclass(frozen=True)
 class GitTask:
-    write_task: WriteTask = None
-    clone_task: CloneTask = None
+    write_task: Optional[WriteTask] = None
+    clone_task: Optional[CloneTask] = None
 
 
 class GitTaskHandler:

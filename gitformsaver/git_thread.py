@@ -11,7 +11,7 @@ class GitThread:
 
     def __init__(self, git_task_handler: GitTaskHandler) -> None:
         self._handler = git_task_handler
-        self._queue = queue.Queue()
+        self._queue: queue.Queue[GitTask] = queue.Queue()
         self._thread = threading.Thread(target=self._run_thread)
         self._running = True
         self._thread.start()

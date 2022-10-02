@@ -12,20 +12,21 @@ from gitformsaver.formatters import Formatter
 from gitformsaver.http_server import GitFormSaverService
 
 
-def test_noop_valid_request(git_thread: GitThread, git_form_saver_service: GitFormSaverService):
+def test_minimal_valid_request(git_thread: GitThread, git_form_saver_service: GitFormSaverService):
     result = run(
         git_form_saver_service.handle(
             FakeRequest(
                 {
                     'repo': 'git@github.com:user/repo.git',
                     'file': 'file',
+                    'key': 'value',
                 }
             )
         )
     )
     assert result.status == 302
     assert result.location == 'Referer'
-    git_thread.push_soon.assert_not_called()
+    git_thread.push_soon.assert_called_once_with('file', 'key: value\n\n')
 
 
 def test_full_request(git_thread: GitThread, git_form_saver_service: GitFormSaverService):
