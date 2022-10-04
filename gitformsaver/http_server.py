@@ -10,6 +10,7 @@ from .formatters import Formatter, FormatterInterface
 from .formatters_loader import load_formatters
 from .git_ops import GitOps
 from .git_thread_manager import GitThreadManager
+from .authentication import Authentication
 
 FORMS_REPO_PATH = "forms"
 FORM_FILE_PATH = "README.md"
@@ -103,6 +104,7 @@ def setup_app(app: web.Application) -> None:
     service = GitFormSaverService(
         git_thread_manager=GitThreadManager(
             git_ops=GitOps(private_key_path=""),
+            authentication=Authentication(private_key_path=""),
         ),
         formatters=load_formatters(),
     )

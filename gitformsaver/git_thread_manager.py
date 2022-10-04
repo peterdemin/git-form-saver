@@ -3,11 +3,12 @@ import time
 from dataclasses import dataclass
 from typing import Dict
 
+from .authentication_interface import AuthenticationInterface
 from .git_ops import GitOps
-from .git_thread import GitThread
-from .lazy_git import LazyGit
 from .git_task_handler import GitTaskHandler
+from .git_thread import GitThread
 from .git_url_parse import parse_git_url
+from .lazy_git import LazyGit
 
 
 @dataclass(frozen=True)
@@ -17,9 +18,10 @@ class ThreadInfo:
 
 
 class GitThreadManager:
-    def __init__(self, git_ops: GitOps) -> None:
+    def __init__(self, git_ops: GitOps, authentication: AuthenticationInterface = None) -> None:
         self._threads: Dict[str, ThreadInfo] = {}
         self._git_ops = git_ops
+        self._authentication = authentication
 
     def __call__(self, repo: str) -> GitThread:
         if repo in self._threads and not self._threads[repo].git_thread.is_running:
@@ -27,7 +29,9 @@ class GitThreadManager:
         if repo not in self._threads:
             git_thread = GitThread(
                 GitTaskHandler(
-                    LazyGit(self._make_repo_path(repo), self._git_ops)
+                    git=LazyGit(self._make_repo_path(repo), self._git_ops),
+                    repo=repo,
+                    authentication=self._authentication,
                 )
             )
             git_thread.clone_soon(repo)
