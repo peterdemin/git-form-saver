@@ -35,7 +35,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'git-form-saver=gitformsaver.http_server:main'
+            'git-form-saver=gitformsaver.cli:run_http_server',
+            'git-form-saver-jwt-token=gitformsaver.cli:generate_token',
         ]
     },
     include_package_data=True,
