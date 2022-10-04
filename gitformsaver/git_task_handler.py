@@ -1,10 +1,11 @@
 import logging
 import os
 from dataclasses import dataclass
-from typing import Tuple, Optional
+from typing import Optional, Tuple
 
-from .lazy_git import LazyGit
+from . import errors
 from .authentication_interface import AuthenticationInterface
+from .lazy_git import LazyGit
 
 LOG = logging.getLogger(__name__)
 
@@ -41,9 +42,9 @@ class GitTaskHandler:
         self._pull()
         is_ok, path = self._normalize_path(write_task.rel_path)
         if is_ok:
-            if self._is_authenticated(path):
-                self._write(path, write_task.text)
-                self._push()
+            self._authenticate(path)
+            self._write(path, write_task.text)
+            self._push()
 
     def _normalize_path(self, path: str) -> Tuple[bool, str]:
         if os.path.isabs(path):
@@ -55,12 +56,15 @@ class GitTaskHandler:
             return False, ''
         return True, abs_path
 
-    def _is_authenticated(self, path: str) -> bool:
+    def _authenticate(self, path: str) -> None:
         with open(path, mode="rt", encoding="utf-8") as fobj:
             token = self._authentication.extract_token(fobj.read(2048))
         if not token:
-            return False
-        return self._authentication.is_valid_token(token, self._repo, path, secret='')
+            raise errors.UserFacingError(
+                "Couldn't find JWT token in the first 2048 bytes of the file"
+            )
+        if not self._authentication.is_valid_token(token, self._repo, path, secret=''):
+            raise errors.UserFacingError("JWT token verification failed")
 
     def _write(self, path: str, text: str) -> None:
         with open(path, mode="a", encoding="utf-8") as fobj:

@@ -5,6 +5,7 @@ from unittest import mock
 import pytest
 
 from gitformsaver.authentication_interface import AuthenticationInterface
+from gitformsaver.errors import UserFacingError
 from gitformsaver.git_task_handler import CloneTask, GitTaskHandler, WriteTask
 from gitformsaver.lazy_git import LazyGit
 
@@ -72,7 +73,8 @@ def test_task_handler_respects_authentication(
     mock_authentication: AuthenticationInterface,
 ) -> None:
     mock_authentication.is_valid_token.return_value = False
-    git_task_handler.handle_write(WriteTask(rel_path='rel-path', text='text'))
+    with pytest.raises(UserFacingError):
+        git_task_handler.handle_write(WriteTask(rel_path='rel-path', text='text'))
     mock_lazy_git.maybe_pull.assert_called_once_with()
     mock_lazy_git.maybe_push.assert_not_called()
     with open(os.path.join(temp_repo_root, 'rel-path'), encoding='ascii') as fobj:
