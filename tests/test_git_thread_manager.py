@@ -6,6 +6,7 @@ import pytest
 from gitformsaver.git_client import Git
 from gitformsaver.git_ops import GitOps
 from gitformsaver.git_thread_manager import GitThreadManager
+from gitformsaver.authentication_interface import AuthenticationInterface
 
 
 @pytest.mark.parametrize(
@@ -48,6 +49,18 @@ def _mock_git_ops() -> GitOps:
     return obj
 
 
+@pytest.fixture(name='mock_authentication')
+def _mock_authentication() -> AuthenticationInterface:
+    obj = mock.Mock(spec_set=AuthenticationInterface)
+    obj.is_valid_token.return_value = True
+    return obj
+
+
 @pytest.fixture(name='git_thread_manager')
-def _git_thread_manager(mock_git_ops: GitOps) -> GitThreadManager:
-    return GitThreadManager(git_ops=mock_git_ops)
+def _git_thread_manager(
+    mock_git_ops: GitOps, mock_authentication: AuthenticationInterface
+) -> GitThreadManager:
+    return GitThreadManager(
+        git_ops=mock_git_ops,
+        authentication=mock_authentication,
+    )

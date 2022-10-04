@@ -18,7 +18,7 @@ class ThreadInfo:
 
 
 class GitThreadManager:
-    def __init__(self, git_ops: GitOps, authentication: AuthenticationInterface = None) -> None:
+    def __init__(self, git_ops: GitOps, authentication: AuthenticationInterface) -> None:
         self._threads: Dict[str, ThreadInfo] = {}
         self._git_ops = git_ops
         self._authentication = authentication

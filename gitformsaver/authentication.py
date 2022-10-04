@@ -35,7 +35,7 @@ class Authentication(AuthenticationInterface):
         except jwt.exceptions.InvalidSignatureError:
             return False
 
-    def _format_payload(self, repo: str, path: str, secret: str) -> str:
+    def _format_payload(self, repo: str, path: str, secret: str) -> Dict[str, str]:
         return {
             self._HASH_ALGORITHM: hmac.new(
                 key=(secret or 'secret').encode('utf-8'),
@@ -44,11 +44,13 @@ class Authentication(AuthenticationInterface):
             ).hexdigest()
         }
 
-    def _encode(self, payload: Dict[str, str]) -> bytes:
-        return jwt.encode(payload=payload, key=self._private_key, algorithm=self._ALGORITHM)
+    def _encode(self, payload: Dict[str, str]) -> str:
+        return jwt.encode(
+            payload=payload, key=cast(str, self._private_key), algorithm=self._ALGORITHM
+        )
 
     def _decode(self, token: str) -> Dict[str, str]:
-        return jwt.decode(jwt=token, key=self._public_key, algorithms=self._ALGORITHM)
+        return jwt.decode(jwt=token, key=cast(str, self._public_key), algorithms=[self._ALGORITHM])
 
     @cached_property
     def _private_key(self) -> rsa.RSAPrivateKey:

@@ -1,5 +1,6 @@
 from aiohttp import web
 
+from gitformsaver.authentication import Authentication
 from gitformsaver.formatters_loader import load_formatters
 from gitformsaver.git_ops import GitOps
 from gitformsaver.git_thread_manager import GitThreadManager
@@ -14,6 +15,7 @@ def setup_app(app: web.Application) -> None:
     service = GitFormSaverService(
         git_thread_manager=GitThreadManager(
             git_ops=GitOps(private_key_path=""),
+            authentication=Authentication(private_key_path=""),
         ),
         formatters=load_formatters(),
     )

@@ -1,6 +1,6 @@
 import os
 import pathlib
-from unittest.mock import Mock
+from unittest import mock
 
 import pytest
 
@@ -96,14 +96,14 @@ def _temp_repo_root(tmp_path: pathlib.Path) -> str:
 
 @pytest.fixture(name='mock_lazy_git')
 def _mock_lazy_git(temp_repo_root: str) -> LazyGit:
-    obj = Mock(spec_set=LazyGit)
+    obj = mock.Mock(spec_set=LazyGit)
     obj.root = temp_repo_root
     return obj
 
 
 @pytest.fixture(name='mock_authentication')
-def _mock_authentication() -> LazyGit:
-    obj = Mock(spec_set=AuthenticationInterface)
+def _mock_authentication() -> AuthenticationInterface:
+    obj = mock.Mock(spec_set=AuthenticationInterface)
     obj.is_valid_token.return_value = True
     return obj
 
