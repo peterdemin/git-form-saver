@@ -42,10 +42,13 @@ class AuthenticationService:
         return web.HTTPOk(
             text=self._authentication.create_token(
                 repo=control.repo,
-                path=control.path,
+                path=control.file,
                 secret=control.secret,
             )
         )
 
     def _format_validation_error(self, exc: marshmallow.ValidationError) -> str:
         return '\n'.join(f'{key}: {" ".join(values)}' for key, values in exc.messages_dict.items())
+
+    def setup(self, app: web.Application) -> None:
+        app.router.add_post("/token", self.handle)
