@@ -94,15 +94,15 @@ upload:  ## Push static HTML docs to GH pages
 	touch _docs/.nojekyll
 	git fetch origin gh-pages
 	git checkout gh-pages
-	rm -rf build docs
+	rm -rf docs
 	mv _docs docs
 	git add -A docs
 	git commit -m "Update static html" --no-edit
 
 .PHONY: browser
 browser:  ## Open browser to see locally built HTML docs
-	open build/html/index.html
+	open docs/_build/html/index.html
 
 .PHONY: watch
-watch: build browser  ## compile the docs watching for changes
-	watch '$(MAKE) html'
+watch: docs browser  ## compile the docs watching for changes
+	watch '$(MAKE) docs'
