@@ -21,7 +21,7 @@ INSTALL_REQUIRES = read_requirements()
 
 setup(
     name='git-form-saver',
-    version='0.0.3',
+    version='0.0.4',
     description="Git form saver",
     long_description=README,
     author="Peter Demin",
