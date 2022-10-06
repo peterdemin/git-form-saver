@@ -1,6 +1,7 @@
 .DEFAULT_GOAL := help
 
 BROWSER := open
+
 define PRINT_HELP_PYSCRIPT
 import re, sys
 
@@ -8,9 +9,16 @@ for line in sys.stdin:
 	match = re.match(r'^([a-zA-Z_-]+):.*?## (.*)$$', line)
 	if match:
 		target, help = match.groups()
-		print("%-20s %s" % (target, help))
+		print("%-10s %s" % (target, help))
 endef
 export PRINT_HELP_PYSCRIPT
+
+# You can set these variables from the command line, and also
+# from the environment for the first two.
+SPHINXOPTS    ?=
+SPHINXBUILD   ?= sphinx-build
+SOURCEDIR     = docs
+BUILDDIR      = docs/_build
 
 .PHONY: help
 help:
@@ -18,9 +26,11 @@ help:
 
 .PHONY: clean
 clean: ## remove build artifacts
-	rm -rf build/
-	rm -rf dist/
-	rm -rf .eggs/
+	rm -rf build/ \
+	       docs/ \
+	       _docs/ \
+	       dist/ \
+	       .eggs/
 	find . -name '.eggs' -type d -exec rm -rf {} +
 	find . -name '*.egg-info' -exec rm -rf {} +
 	find . -name '*.egg' -exec rm -f {} +
@@ -60,9 +70,39 @@ sync: ## completely sync installed packages with dev dependencies
 	pip install -e .
 
 .PHONY: lock
-lock:
+lock: ## lock versions of third-party dependencies
 	pip-compile-multi --directory . --allow-unsafe --no-upgrade -t requirements_dev.in
 
 .PHONY: upgrade
-upgrade:
+upgrade: ## upgrade versions of third-party dependencies
 	pip-compile-multi --directory . --allow-unsafe -t requirements_dev.in
+
+.PHONY: docs
+docs: Makefile  ## build HTML docs
+	@$(SPHINXBUILD) -M html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
+
+# GitHub pages action:
+.PHONY: gitconfig
+gitconfig:  ## Configure git for commiting in GitHub actions workflow.
+	git config user.name 'Peter Demin (bot)'
+	git config user.email 'peterdemin@users.noreply.github.com'
+
+.PHONY: upload
+upload:  ## Push static HTML docs to GH pages
+	mv docs/_build/html _docs
+	touch _docs/.nojekyll
+	git fetch origin gh-pages
+	git checkout gh-pages
+	rm -rf build docs
+	mv _docs docs
+	git add -A docs
+	git commit -m "Update static html" --no-edit
+
+.PHONY: browser
+browser:  ## Open browser to see locally built HTML docs
+	open build/html/index.html
+
+.PHONY: watch
+watch: build browser  ## compile the docs watching for changes
+	watch '$(MAKE) html'
