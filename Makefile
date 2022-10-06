@@ -38,7 +38,7 @@ release: dist ## package and upload a release
 
 .PHONY: lint
 lint: ## check style with pylint
-	pylint gitformsaver tests
+	pylint -j 0 gitformsaver tests
 	mypy gitformsaver/
 	pytype -j auto gitformsaver/
 

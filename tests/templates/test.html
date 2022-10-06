@@ -7,6 +7,7 @@
     <title>Test git form saver</title>
   </head>
   <body>
+
     <h2>Explicit redirect to tested</h2>
     <form action="./" method="POST">
       <div>
@@ -37,6 +38,29 @@
       </div>
       <input type=hidden name="repo" value="git@github.com:peterdemin/git-form-saver-demo.git" />
       <input type=hidden name="file" value="README.md" />
+      <div>
+        <button>Send</button>
+      </div>
+    </form>
+
+    <h2>All fields explicit</h2>
+    <form action="./" method="POST">
+      <div>
+        <label for="text">Text</label>
+        <input name="text" id="text" value="Text" />
+      </div>
+      <div>
+        <label for="redirect">Redirect target after submission</label>
+        <input name="redirect" value="{{ base_url }}{{ url('test_done_page') }}" />
+      </div>
+      <div>
+        <label for="repo">Repository URL</label>
+        <input name="repo" value="git@github.com:peterdemin/git-form-saver-demo.git" />
+      </div>
+      <div>
+        <label for="file">File path inside of the repository</label>
+        <input name="file" value="README.md" />
+      </div>
       <div>
         <button>Send</button>
       </div>

@@ -45,13 +45,14 @@ class ControlSchema(marshmallow.Schema):
 
 
 class GitFormSaverService:
+    _control_schema = ControlSchema()
+
     def __init__(
         self,
         git_thread_manager: GitThreadManager,
         formatters: Mapping[Formatter, FormatterInterface],
     ) -> None:
         self._git_thread_manager = git_thread_manager
-        self._control_schema = ControlSchema()
         self._formatters = formatters
 
     async def handle(

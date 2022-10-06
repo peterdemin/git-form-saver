@@ -4,10 +4,10 @@ from .formatters_loader import load_formatters
 from .git_ops import GitOps
 from .git_thread_manager import GitThreadManager
 from .authentication import Authentication
-from .service import GitFormSaverService
+from .form_saver_service import GitFormSaverService
 
 
-def setup_app(app: web.Application) -> None:
+def setup_app(app: web.Application) -> web.Application:
     service = GitFormSaverService(
         git_thread_manager=GitThreadManager(
             git_ops=GitOps(private_key_path=""),
@@ -16,3 +16,4 @@ def setup_app(app: web.Application) -> None:
         formatters=load_formatters(),
     )
     service.setup(app)
+    return app

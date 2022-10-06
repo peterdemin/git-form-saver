@@ -14,6 +14,7 @@ LOG = logging.getLogger(__name__)
 class WriteTask:
     rel_path: str
     text: str
+    secret: str = ''
 
 
 @dataclass(frozen=True)
@@ -42,7 +43,8 @@ class GitTaskHandler:
         self._pull()
         is_ok, path = self._normalize_path(write_task.rel_path)
         if is_ok:
-            self._authenticate(path)
+            token = self._read_token(path)
+            self._validate_token(token, write_task.rel_path, secret=write_task.secret)
             self._write(path, write_task.text)
             self._push()
 
@@ -56,14 +58,18 @@ class GitTaskHandler:
             return False, ''
         return True, abs_path
 
-    def _authenticate(self, path: str) -> None:
+    def _read_token(self, path: str) -> str:
         with open(path, mode="rt", encoding="utf-8") as fobj:
             token = self._authentication.extract_token(fobj.read(2048))
         if not token:
             raise errors.UserFacingError(
                 "Couldn't find JWT token in the first 2048 bytes of the file"
             )
-        if not self._authentication.is_valid_token(token, self._repo, path, secret=''):
+        LOG.debug("Found token: %s", token)
+        return token
+
+    def _validate_token(self, token: str, path: str, secret: str) -> None:
+        if not self._authentication.is_valid_token(token, self._repo, path, secret):
             raise errors.UserFacingError("JWT token verification failed")
 
     def _write(self, path: str, text: str) -> None:

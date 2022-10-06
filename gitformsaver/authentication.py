@@ -1,4 +1,5 @@
 import hmac
+import logging
 import os
 import re
 from functools import cached_property
@@ -9,6 +10,8 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.serialization.ssh import load_ssh_private_key
 
 from .authentication_interface import AuthenticationInterface
+
+LOG = logging.getLogger(__name__)
 
 
 class Authentication(AuthenticationInterface):
@@ -31,18 +34,27 @@ class Authentication(AuthenticationInterface):
 
     def is_valid_token(self, token: str, repo: str, path: str, secret: str = '') -> bool:
         try:
-            return self._decode(token) == self._format_payload(repo, path, secret)
+            decoded = self._decode(token)
+            expected = self._format_payload(repo, path, secret)
+            if decoded == expected:
+                return True
+            LOG.debug("Expected token: %s", expected)
+            LOG.debug("Decoded token:  %s", decoded)
         except jwt.exceptions.InvalidSignatureError:
-            return False
+            LOG.exception("Invalid signature")
+        return False
 
     def _format_payload(self, repo: str, path: str, secret: str) -> Dict[str, str]:
-        return {
+        key = (secret or 'secret').encode('utf-8')
+        msg = f'{repo} {path}'.encode('utf-8')
+        LOG.debug("Generating payload: key: %s, msg: %s", key, msg)
+        result = {
             self._HASH_ALGORITHM: hmac.new(
-                key=(secret or 'secret').encode('utf-8'),
-                msg=f'{repo} {path}'.encode('utf-8'),
-                digestmod=self._HASH_ALGORITHM.lower(),
+                key=key, msg=msg, digestmod=self._HASH_ALGORITHM.lower()
             ).hexdigest()
         }
+        LOG.debug("Payload: %s", result)
+        return result
 
     def _encode(self, payload: Dict[str, str]) -> str:
         return jwt.encode(

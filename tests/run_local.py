@@ -1,32 +1,22 @@
+import logging
+
 from aiohttp import web
 
-from gitformsaver.authentication import Authentication
-from gitformsaver.formatters_loader import load_formatters
-from gitformsaver.git_ops import GitOps
-from gitformsaver.git_thread_manager import GitThreadManager
-from gitformsaver.http_server import GitFormSaverService
+from gitformsaver.http_server import setup_app
 
 from .toy_service import ToyService
 
-_app = web.Application()
 
-
-def setup_app(app: web.Application) -> None:
-    service = GitFormSaverService(
-        git_thread_manager=GitThreadManager(
-            git_ops=GitOps(private_key_path=""),
-            authentication=Authentication(private_key_path=""),
-        ),
-        formatters=load_formatters(),
-    )
-    service.setup(app)
+def setup_toy_app(app: web.Application) -> web.Application:
+    setup_app(app)
     toy_service = ToyService()
     toy_service.setup(app)
+    return app
 
 
 def main():
-    setup_app(_app)
-    web.run_app(_app)
+    logging.basicConfig(level=logging.DEBUG)
+    web.run_app(setup_toy_app(web.Application()))
 
 
 if __name__ == "__main__":

@@ -9,7 +9,7 @@ from gitformsaver.git_thread import GitThread
 from gitformsaver.git_thread_manager import GitThreadManager
 from gitformsaver.plain_text_formatter import PlainTextFormatter
 from gitformsaver.formatters import Formatter
-from gitformsaver.http_server import GitFormSaverService
+from gitformsaver.form_saver_service import GitFormSaverService
 
 
 def test_minimal_valid_request(git_thread: GitThread, git_form_saver_service: GitFormSaverService):
