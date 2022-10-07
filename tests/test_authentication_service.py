@@ -1,3 +1,4 @@
+from typing import Dict
 from unittest import mock
 
 import pytest
@@ -6,31 +7,29 @@ from gitformsaver.authentication_interface import AuthenticationInterface
 from gitformsaver.authentication_service import AuthenticationService
 
 from .async_utils import FakeRequest, run
+from .golden_utils import assert_golden, load_test_cases
+from .testdata.authentication_service_test_cases import TEST_CASES
 
 
-@pytest.mark.parametrize('secret', ['', 'secret'])
-def test_valid_request(
+@load_test_cases(TEST_CASES)
+def test_authentication_service_test_cases(
     authentication_service: AuthenticationService,
     mock_authentication: AuthenticationInterface,
-    secret: str,
-) -> None:
-    payload = {'repo': 'git@github.com:user/repo.git', 'file': 'file', 'secret': secret}
-    result = run(authentication_service.handle(FakeRequest(payload)))
-    assert result.status == 200
-    assert result.text == 'token'
-    mock_authentication.create_token.assert_called_once_with(
-        repo='git@github.com:user/repo.git', path='file', secret=secret
+    name: str,
+    parameters: Dict[str, str],
+    expected: dict,
+) -> dict:
+    response = run(authentication_service.handle(FakeRequest(parameters)))
+    assert_golden(
+        name,
+        expected,
+        {
+            'status': response.status,
+            'text': response.text,
+            'headers': dict(response.headers),
+            'create_token': mock_authentication.create_token.call_args_list,
+        },
     )
-
-
-def test_incomplete_request_rejected(
-    authentication_service: AuthenticationService, mock_authentication: AuthenticationInterface
-) -> None:
-    payload = {'repo': 'git@github.com:user/repo.git'}
-    result = run(authentication_service.handle(FakeRequest(payload)))
-    assert result.status == 400
-    assert result.text == 'file: Missing data for required field.'
-    mock_authentication.create_token.assert_not_called()
 
 
 @pytest.fixture(name='mock_authentication')

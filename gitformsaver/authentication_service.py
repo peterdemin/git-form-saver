@@ -18,7 +18,7 @@ class Control:
 class ControlSchema(marshmallow.Schema):
     repo = marshmallow.fields.String(required=True)
     file = marshmallow.fields.String(required=True)
-    secret = marshmallow.fields.String(required=False)
+    secret = marshmallow.fields.String(required=False, load_default='')
 
     @marshmallow.post_load
     def make_control(self, data, **kwargs):
@@ -28,23 +28,27 @@ class ControlSchema(marshmallow.Schema):
 
 class AuthenticationService:
     _control_schema = ControlSchema()
+    _HEADERS = {
+        'Access-Control-Allow-Origin': '*',
+    }
 
     def __init__(self, authentication: AuthenticationInterface) -> None:
         self._authentication = authentication
 
-    async def handle(
-        self, request: aiohttp.web.Request
-    ) -> Union[web.HTTPOk, web.HTTPBadRequest]:
+    async def handle(self, request: aiohttp.web.Request) -> Union[web.HTTPOk, web.HTTPBadRequest]:
         try:
             control = self._control_schema.load(await request.post())
         except marshmallow.ValidationError as exc:
-            return web.HTTPBadRequest(text=self._format_validation_error(exc))
+            return web.HTTPBadRequest(
+                headers=self._HEADERS, text=self._format_validation_error(exc)
+            )
         return web.HTTPOk(
+            headers=self._HEADERS,
             text=self._authentication.create_token(
                 repo=control.repo,
                 path=control.file,
                 secret=control.secret,
-            )
+            ),
         )
 
     def _format_validation_error(self, exc: marshmallow.ValidationError) -> str:
