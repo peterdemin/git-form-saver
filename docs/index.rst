@@ -23,8 +23,7 @@ When to use Git form saver
 
 Git form saver is useful when you want to allow appending data to specific file in a git repo through HTML form submission.
 
-Possible use-cases
-~~~~~~~~~~~~~~~~~~
+**Use-cases**
 
 - In public environment:
 
